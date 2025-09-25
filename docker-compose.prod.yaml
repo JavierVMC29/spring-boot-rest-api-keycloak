@@ -1,0 +1,78 @@
+name: vmc
+
+services:
+  postgres:
+    container_name: vmc_postgres
+    image: postgres:17.4-alpine3.21
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_COMPANIES} # default DB
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vmc_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+
+  keycloak:
+    container_name: vmc_keycloak
+    image: quay.io/keycloak/keycloak:26.1.4
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB_VENDOR: POSTGRES
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_SCHEMA: public
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_URL_PORT: ${POSTGRES_PORT}
+      KC_DB_URL_DATABASE: ${POSTGRES_DB_KEYCLOAK}
+      KC_PROXY: edge
+      KC_PROXY_HEADERS: forwarded
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${KEYCLOAK_PORT}:8080"
+    networks:
+      - vmc_network
+    command:
+      - start-dev
+
+  companies_app:
+    container_name: companies_app
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${POSTGRES_PORT}/${POSTGRES_DB_COMPANIES}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_URL: http://keycloak:${KEYCLOAK_PORT}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      SERVER_PORT: ${APP_PORT}
+    depends_on:
+      - postgres
+      - keycloak
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    networks:
+      - vmc_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  vmc_network:
+    driver: bridge
