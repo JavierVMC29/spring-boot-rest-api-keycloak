@@ -1,6 +1,7 @@
 package com.javiervmc.tutorials.companies_keycloak.exception;
 
 
+import com.javiervmc.tutorials.companies_keycloak.dto.ApiResponse;
 import com.javiervmc.tutorials.companies_keycloak.dto.ResponseStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +14,8 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
-        ApiError error = ApiError.builder()
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(NotFoundException ex) {
+        ApiResponse<Void> error = ApiResponse.<Void>builder()
                 .status(ResponseStatus.ERROR)
                 .message(ex.getMessage())
                 .statusCode(HttpStatus.NOT_FOUND.value())
@@ -24,8 +25,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException ex) {
-        ApiError error = ApiError.builder()
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
+        ApiResponse<Void> error = ApiResponse.<Void>builder()
                 .status(ResponseStatus.ERROR)
                 .message(ex.getMessage())
                 .statusCode(HttpStatus.UNAUTHORIZED.value())
@@ -35,8 +36,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ApiError> handleForbidden(ForbiddenException ex) {
-        ApiError error = ApiError.builder()
+    public ResponseEntity<ApiResponse<Void>> handleForbidden(ForbiddenException ex) {
+        ApiResponse<Void> error = ApiResponse.<Void>builder()
                 .status(ResponseStatus.ERROR)
                 .message(ex.getMessage())
                 .statusCode(HttpStatus.FORBIDDEN.value())
@@ -46,8 +47,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleGenericException(Exception ex) {
-        ApiError error = ApiError.builder()
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+        ApiResponse<Void> error = ApiResponse.<Void>builder()
                 .status(ResponseStatus.ERROR)
                 .message("Internal server error")
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())

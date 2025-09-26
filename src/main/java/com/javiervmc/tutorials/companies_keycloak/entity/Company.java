@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data // Add getters and setters for all attributes
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@Entity(name="companies")
 public class Company extends BaseModel{
     @Id // Make the attribute the PK of the table.
     @GeneratedValue(strategy = GenerationType.IDENTITY)

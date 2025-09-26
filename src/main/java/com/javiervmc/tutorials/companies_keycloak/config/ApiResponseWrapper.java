@@ -3,10 +3,12 @@ package com.javiervmc.tutorials.companies_keycloak.config;
 import com.javiervmc.tutorials.companies_keycloak.dto.ApiResponse;
 import com.javiervmc.tutorials.companies_keycloak.dto.ResponseStatus;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
@@ -18,8 +20,7 @@ public class ApiResponseWrapper implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType,
                             Class<? extends HttpMessageConverter<?>> converterType) {
-        // Wrap all responses except ApiResponse itself
-        return !returnType.getParameterType().equals(ApiResponse.class);
+        return true;
     }
 
     @Override
@@ -27,17 +28,20 @@ public class ApiResponseWrapper implements ResponseBodyAdvice<Object> {
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
 
-        // If the body is null (e.g., DELETE 204), return empty data
-        if (body == null) {
-            return ApiResponse.builder()
-                    .status(ResponseStatus.SUCCESS)
-                    .data(null)
-                    .timestamp(LocalDateTime.now())
-                    .build();
+        // If the body is already an ApiResponse, don't wrap it
+        if (body instanceof ApiResponse) {
+            return body;
+        }
+
+        // Get status code
+        int statusCode = HttpStatus.OK.value();
+        if (response instanceof ServletServerHttpResponse servletResponse) {
+            statusCode = servletResponse.getServletResponse().getStatus();
         }
 
         return ApiResponse.builder()
                 .status(ResponseStatus.SUCCESS)
+                .statusCode(statusCode)
                 .data(body)
                 .timestamp(LocalDateTime.now())
                 .build();
