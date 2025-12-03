@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 
@@ -44,6 +45,31 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<Void>> handleForbidden(BadRequestException ex) {
+        ApiResponse<Void> error = ApiResponse.<Void>builder()
+                .status(ResponseStatus.ERROR)
+                .message(ex.getMessage())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(ResponseStatus.ERROR)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("Invalid value for parameter '" + ex.getName() + "': " + ex.getValue())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)

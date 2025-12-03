@@ -8,6 +8,7 @@ import com.javiervmc.tutorials.companies_keycloak.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class CompanyController {
         this.companyService = companyService;
     }
 
+    @PreAuthorize("hasRole('view-companies')")
     @GetMapping("")
     public ResponseEntity<GetCompaniesResponse> getCompanies(
             @RequestParam(
@@ -36,6 +38,7 @@ public class CompanyController {
         );
     }
 
+    @PreAuthorize("hasRole('view-companies')")
     @GetMapping("{id}")
     public ResponseEntity<CompanyDto> companyDetail(
             @PathVariable Long id){
@@ -44,6 +47,7 @@ public class CompanyController {
         );
     }
 
+    @PreAuthorize("hasRole('create-companies')")
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<CompanyDto> createCompany(
@@ -52,6 +56,7 @@ public class CompanyController {
                 companyService.createCompany(dto), HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('update-companies')")
     @PutMapping("{id}")
     public ResponseEntity<CompanyDto> updateCompany(
             @RequestBody UpdateCompanyDto dto,
@@ -61,6 +66,7 @@ public class CompanyController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('delete-companies')")
     @DeleteMapping("{id}")
     public ResponseEntity<CompanyDto> deleteCompany(
             @PathVariable("id") Long id
