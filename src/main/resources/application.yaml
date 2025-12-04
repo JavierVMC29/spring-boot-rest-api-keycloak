@@ -1,0 +1,31 @@
+spring:
+  profiles:
+    group:
+      dev:
+        - dev
+      prod:
+        - prod
+  application:
+    name: ${SPRING_APP_NAME:companies-keycloak}
+
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/companies
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: ${APP_PORT:5000}
+
+logging:
+  level:
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:INFO}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${HIBERNATE_BIND_LOG:INFO}

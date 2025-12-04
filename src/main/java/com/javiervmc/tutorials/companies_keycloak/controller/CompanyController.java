@@ -5,6 +5,9 @@ import com.javiervmc.tutorials.companies_keycloak.dto.CreateCompanyDto;
 import com.javiervmc.tutorials.companies_keycloak.dto.GetCompaniesResponse;
 import com.javiervmc.tutorials.companies_keycloak.dto.UpdateCompanyDto;
 import com.javiervmc.tutorials.companies_keycloak.service.CompanyService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +30,16 @@ public class CompanyController {
             @RequestParam(
                     value = "pageNo",
                     defaultValue = "0",
-                    required = false) int pageNo,
+                    required = false)
+            @Min(value = 0, message = "pageNo must be >= 0")
+            int pageNo,
             @RequestParam(
                     value = "pageSize",
                     defaultValue = "10",
-                    required = false) int pageSize
+                    required = false)
+            @Min(value = 1, message = "pageSize must be >= 1")
+            @Max(value = 100, message = "pageSize cannot exceed 100")
+            int pageSize
     ){
         return new ResponseEntity<GetCompaniesResponse>(
                 companyService.getAllCompanies(pageNo, pageSize), HttpStatus.OK
@@ -41,7 +49,9 @@ public class CompanyController {
     @PreAuthorize("hasRole('view-companies')")
     @GetMapping("{id}")
     public ResponseEntity<CompanyDto> companyDetail(
-            @PathVariable Long id){
+            @PathVariable
+            @Min(value = 1, message = "id must be a positive number")
+            Long id){
         return new ResponseEntity<CompanyDto>(
                 companyService.getCompanyById(id), HttpStatus.OK
         );
@@ -51,7 +61,7 @@ public class CompanyController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<CompanyDto> createCompany(
-            @RequestBody CreateCompanyDto dto){
+            @Valid @RequestBody CreateCompanyDto dto){
         return new ResponseEntity<CompanyDto>(
                 companyService.createCompany(dto), HttpStatus.CREATED);
     }
@@ -59,8 +69,10 @@ public class CompanyController {
     @PreAuthorize("hasRole('update-companies')")
     @PutMapping("{id}")
     public ResponseEntity<CompanyDto> updateCompany(
-            @RequestBody UpdateCompanyDto dto,
-            @PathVariable("id") Long id
+            @Valid @RequestBody UpdateCompanyDto dto,
+            @PathVariable("id")
+            @Min(value = 1, message = "id must be a positive number")
+            Long id
     ){
         CompanyDto response = companyService.updateCompany(dto, id);
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -69,7 +81,9 @@ public class CompanyController {
     @PreAuthorize("hasRole('delete-companies')")
     @DeleteMapping("{id}")
     public ResponseEntity<CompanyDto> deleteCompany(
-            @PathVariable("id") Long id
+            @PathVariable("id")
+            @Min(value = 1, message = "id must be a positive number")
+            Long id
     ){
         CompanyDto response = companyService.deleteCompany(id);
         return new ResponseEntity<CompanyDto>(response, HttpStatus.OK);
