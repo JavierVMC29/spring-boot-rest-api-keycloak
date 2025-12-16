@@ -3,6 +3,8 @@ package com.javiervmc.tutorials.companies_keycloak.company.infrastructure;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.Company;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.CompanyNotFoundException;
 
+import com.javiervmc.tutorials.companies_keycloak.core.domain.PagedResult;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -108,7 +110,7 @@ class CompanyRepositoryImplTest {
 
         when(companyJpaRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        Page<Company> response = companyRepository.getAllCompanies(0, 10);
+        PagedResult<Company> response = companyRepository.getAllCompanies(0, 10);
 
         assertThat(response.getContent()).hasSize(1);
         assertThat(response.getContent().getFirst().getName()).isEqualTo("C1");

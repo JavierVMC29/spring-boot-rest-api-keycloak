@@ -5,7 +5,12 @@ import com.javiervmc.tutorials.companies_keycloak.company.api.dto.UpdateCompanyD
 import com.javiervmc.tutorials.companies_keycloak.company.api.response.CompanyResponse;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.Company;
 
+import com.javiervmc.tutorials.companies_keycloak.core.api.PagedResponse;
+import com.javiervmc.tutorials.companies_keycloak.core.domain.PagedResult;
+
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @NoArgsConstructor
@@ -27,5 +32,22 @@ public class CompanyApiMapper {
         Company company = new Company();
         company.setName(dto.getName());
         return company;
+    }
+
+    public static PagedResponse<CompanyResponse> mapPagedResultToResponse(PagedResult<Company> pagedResult) {
+        List<CompanyResponse> content = pagedResult.getContent()
+                .stream()
+                .map(CompanyApiMapper::mapDomainToResponse)
+                .toList();
+
+        PagedResponse<CompanyResponse> response = new PagedResponse<>();
+        response.setContent(content);
+        response.setPageNo(pagedResult.getPageNumber());
+        response.setPageSize(pagedResult.getPageSize());
+        response.setTotalElements(pagedResult.getTotalElements());
+        response.setTotalPages(pagedResult.getTotalPages());
+        response.setLast(pagedResult.isLast());
+
+        return response;
     }
 }

@@ -4,14 +4,14 @@ import com.javiervmc.tutorials.companies_keycloak.company.domain.Company;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.CompanyNotFoundException;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.CompanyRepository;
 
+import com.javiervmc.tutorials.companies_keycloak.core.domain.PagedResult;
+import com.javiervmc.tutorials.companies_keycloak.core.infrastructure.PageMapper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CompanyRepositoryImpl implements CompanyRepository {
@@ -30,21 +30,11 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     @Override
-    public Page<Company>  getAllCompanies(int pageNo, int pageSize) {
+    public PagedResult<Company> getAllCompanies(int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<CompanyEntity> companiesEntities = companyJpaRepository.findAll(pageable);
+        Page<CompanyEntity> springPage = companyJpaRepository.findAll(pageable);
 
-        List<Company> domainCompanies = companiesEntities
-                .getContent()
-                .stream()
-                .map(CompanyMapper::mapEntityToDomain)
-                .toList();
-
-        return new PageImpl<>(
-                domainCompanies,
-                pageable,
-                companiesEntities.getTotalElements()
-        );
+        return PageMapper.fromSpringPage(springPage, CompanyMapper::mapEntityToDomain);
     }
 
     @Override

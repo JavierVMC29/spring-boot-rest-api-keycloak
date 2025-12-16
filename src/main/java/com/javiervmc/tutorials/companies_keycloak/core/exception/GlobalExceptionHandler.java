@@ -1,17 +1,19 @@
 package com.javiervmc.tutorials.companies_keycloak.core.exception;
 
-
 import com.javiervmc.tutorials.companies_keycloak.core.api.ApiResponse;
 import com.javiervmc.tutorials.companies_keycloak.core.api.ResponseStatus;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice
@@ -51,7 +53,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiResponse<Void>> handleForbidden(BadRequestException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleBadRequest(BadRequestException ex) {
         ApiResponse<Void> error = ApiResponse.<Void>builder()
                 .status(ResponseStatus.ERROR)
                 .message(ex.getMessage())
@@ -61,9 +63,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMethodValidation(HandlerMethodValidationException ex) {
+        List<String> messages = ex.getAllErrors().stream()
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .toList();
+
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(ResponseStatus.ERROR)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("Validation failed")
+                .data(messages)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(ResponseStatus.ERROR)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -76,7 +94,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
 
         ex.getBindingResult().getFieldErrors().forEach(error ->
@@ -86,7 +104,7 @@ public class GlobalExceptionHandler {
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(ResponseStatus.ERROR)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .message("Validation failed")
+                .message("Validation failed for request body")
                 .data(errors)
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -105,4 +123,3 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
-

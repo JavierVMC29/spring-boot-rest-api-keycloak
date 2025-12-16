@@ -2,22 +2,21 @@ package com.javiervmc.tutorials.companies_keycloak.company.api;
 
 import com.javiervmc.tutorials.companies_keycloak.company.api.response.CompanyResponse;
 import com.javiervmc.tutorials.companies_keycloak.company.api.dto.CreateCompanyDto;
-import com.javiervmc.tutorials.companies_keycloak.company.api.response.GetCompaniesResponse;
 import com.javiervmc.tutorials.companies_keycloak.company.api.dto.UpdateCompanyDto;
 import com.javiervmc.tutorials.companies_keycloak.company.application.*;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.Company;
+
+import com.javiervmc.tutorials.companies_keycloak.core.api.PagedResponse;
+import com.javiervmc.tutorials.companies_keycloak.core.domain.PagedResult;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/companies")
@@ -45,7 +44,7 @@ public class CompanyController {
 
     @PreAuthorize("hasRole('view-companies')")
     @GetMapping("")
-    public ResponseEntity<GetCompaniesResponse> getCompanies(
+    public ResponseEntity<PagedResponse<CompanyResponse>> getCompanies(
             @RequestParam(
                     value = "pageNo",
                     defaultValue = "0",
@@ -60,23 +59,11 @@ public class CompanyController {
             @Max(value = 100, message = "pageSize cannot exceed 100")
             int pageSize
     ){
-        Page<Company> companies = getCompaniesUseCase.execute(pageNo, pageSize);
+        PagedResult<Company> result = getCompaniesUseCase.execute(pageNo, pageSize);
 
-        List<CompanyResponse> content = companies.getContent()
-                .stream()
-                .map(CompanyApiMapper::mapDomainToResponse)
-                .toList();
+        PagedResponse<CompanyResponse> response = CompanyApiMapper.mapPagedResultToResponse(result);
 
-        GetCompaniesResponse companiesResponse = new GetCompaniesResponse();
-        companiesResponse.setContent(content);
-        companiesResponse.setPageNo(companies.getNumber());
-        companiesResponse.setPageSize(companies.getSize());
-        companiesResponse.setTotalElements(companies.getTotalElements());
-        companiesResponse.setTotalPages(companies.getTotalPages());
-        companiesResponse.setLast(companies.isLast());
-
-        return new ResponseEntity<GetCompaniesResponse>(companiesResponse, HttpStatus.OK
-        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('view-companies')")
@@ -88,7 +75,7 @@ public class CompanyController {
         Company company = getCompanyByIdUseCase.execute(id);
         CompanyResponse companyResponse = CompanyApiMapper.mapDomainToResponse(company);
 
-        return new ResponseEntity<CompanyResponse>(companyResponse, HttpStatus.OK);
+        return new ResponseEntity<>(companyResponse, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('create-companies')")
@@ -100,7 +87,7 @@ public class CompanyController {
         Company createdCompany = createCompanyUseCase.execute(company);
         CompanyResponse companyResponse = CompanyApiMapper.mapDomainToResponse(createdCompany);
 
-        return new ResponseEntity<CompanyResponse>(companyResponse, HttpStatus.CREATED);
+        return new ResponseEntity<>(companyResponse, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('update-companies')")
@@ -114,7 +101,7 @@ public class CompanyController {
         Company company = CompanyApiMapper.mapUpdateCompanyDtoToDomain(dto);
         Company updatedCompany = updateCompanyUseCase.execute(company, id);
         CompanyResponse companyResponse = CompanyApiMapper.mapDomainToResponse(updatedCompany);
-        return new ResponseEntity<CompanyResponse>(companyResponse, HttpStatus.OK);
+        return new ResponseEntity<>(companyResponse, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('delete-companies')")
@@ -126,6 +113,6 @@ public class CompanyController {
     ){
         Company deletedCompany = deleteCompanyUseCase.execute(id);
         CompanyResponse companyResponse = CompanyApiMapper.mapDomainToResponse(deletedCompany);
-        return new ResponseEntity<CompanyResponse>(companyResponse, HttpStatus.OK);
+        return new ResponseEntity<>(companyResponse, HttpStatus.OK);
     }
 }

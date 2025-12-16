@@ -2,8 +2,8 @@ package com.javiervmc.tutorials.companies_keycloak.company.application;
 
 import com.javiervmc.tutorials.companies_keycloak.company.domain.Company;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.CompanyRepository;
+import com.javiervmc.tutorials.companies_keycloak.core.domain.PagedResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class GetCompaniesUseCase {
     private final CompanyRepository companyRepository;
 
-    public Page<Company> execute(Integer pageNo, Integer pageSize) {
+    public PagedResult<Company> execute(Integer pageNo, Integer pageSize) {
         return companyRepository.getAllCompanies(pageNo, pageSize);
     }
 }
