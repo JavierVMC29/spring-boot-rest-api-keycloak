@@ -16,7 +16,7 @@ public class GetCompaniesUseCase {
     public PagedResult<Company> execute(Integer pageNo, Integer pageSize) {
         log.info("Fetching companies list. Page: [{}], Size: [{}]", pageNo, pageSize);
 
-        PagedResult<Company> result = companyRepository.getAllCompanies(pageNo, pageSize);
+        PagedResult<Company> result = companyRepository.getAll(pageNo, pageSize);
 
         log.info("Companies fetched successfully. Total elements: [{}]", result.getTotalElements());
         return result;

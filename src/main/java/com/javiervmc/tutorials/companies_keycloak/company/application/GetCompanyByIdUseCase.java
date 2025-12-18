@@ -16,7 +16,7 @@ public class GetCompanyByIdUseCase {
     public Company execute(Long id) {
         log.info("Fetching company details for ID: [{}]", id);
 
-        Company company = companyRepository.getCompanyById(id);
+        Company company = companyRepository.getById(id);
 
         log.info("Company with ID: [{}] found", id);
         return company;

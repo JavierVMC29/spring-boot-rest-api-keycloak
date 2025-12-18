@@ -3,7 +3,6 @@ package com.javiervmc.tutorials.companies_keycloak.company.infrastructure;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.Company;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.CompanyNotFoundException;
 import com.javiervmc.tutorials.companies_keycloak.company.domain.CompanyRepository;
-
 import com.javiervmc.tutorials.companies_keycloak.core.domain.PagedResult;
 import com.javiervmc.tutorials.companies_keycloak.core.infrastructure.PageMapper;
 
@@ -23,14 +22,26 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     @Override
-    public Company createCompany(Company company) {
+    public Company save(Company company) {
         CompanyEntity companyEntity = CompanyMapper.mapDomainToEntity(company);
-        CompanyEntity createdCompany = companyJpaRepository.save(companyEntity);
-        return CompanyMapper.mapEntityToDomain(createdCompany);
+
+        // JPA Logic:
+        // If companyEntity.getId() is null -> INSERT
+        // If companyEntity.getId() exists -> UPDATE
+        CompanyEntity savedEntity = companyJpaRepository.save(companyEntity);
+
+        return CompanyMapper.mapEntityToDomain(savedEntity);
     }
 
     @Override
-    public PagedResult<Company> getAllCompanies(int pageNo, int pageSize) {
+    public Company getById(Long id) {
+        CompanyEntity companyEntity = companyJpaRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException(id));
+        return CompanyMapper.mapEntityToDomain(companyEntity);
+    }
+
+    @Override
+    public PagedResult<Company> getAll(int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<CompanyEntity> springPage = companyJpaRepository.findAll(pageable);
 
@@ -38,23 +49,11 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     @Override
-    public Company getCompanyById(Long id) {
-        CompanyEntity companyEntity =  companyJpaRepository.findById(id).orElseThrow(() -> new CompanyNotFoundException(id));
-        return CompanyMapper.mapEntityToDomain(companyEntity);
-    }
-
-    @Override
-    public Company updateCompany(Company dto, Long id) {
-        CompanyEntity companyEntity = companyJpaRepository.findById(id).orElseThrow(() -> new CompanyNotFoundException(id));
-        companyEntity.setName(dto.getName());
-        CompanyEntity updatedCompanyEntity = companyJpaRepository.save(companyEntity);
-        return CompanyMapper.mapEntityToDomain(updatedCompanyEntity);
-    }
-
-    @Override
-    public Company deleteCompany(Long id) {
-        CompanyEntity companyEntity = companyJpaRepository.findById(id).orElseThrow(() -> new CompanyNotFoundException(id));
-        companyJpaRepository.delete(companyEntity);
-        return CompanyMapper.mapEntityToDomain(companyEntity);
+    public void delete(Long id) {
+        // We verify existence first (Good practice)
+        if (!companyJpaRepository.existsById(id)) {
+            throw new CompanyNotFoundException(id);
+        }
+        companyJpaRepository.deleteById(id);
     }
 }

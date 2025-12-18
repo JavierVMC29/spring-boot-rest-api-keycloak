@@ -16,7 +16,7 @@ public class CreateCompanyUseCase {
     public Company execute(Company company) {
         log.info("Initiating creation of company with name: [{}]", company.getName());
 
-        Company createdCompany = companyRepository.createCompany(company);
+        Company createdCompany = companyRepository.save(company);
 
         log.info("Company created successfully with ID: [{}]", createdCompany.getId());
         return createdCompany;

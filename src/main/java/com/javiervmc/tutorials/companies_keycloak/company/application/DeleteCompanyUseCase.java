@@ -15,9 +15,11 @@ public class DeleteCompanyUseCase {
     public Company execute(Long id) {
         log.info("Initiating deletion of company with ID: [{}]", id);
 
-        Company deletedCompany = companyRepository.deleteCompany(id);
+        Company companyToDelete = companyRepository.getById(id);
+
+        companyRepository.delete(id);
 
         log.info("Company with ID: [{}] deleted successfully", id);
-        return deletedCompany;
+        return companyToDelete;
     }
 }
